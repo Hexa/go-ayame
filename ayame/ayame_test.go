@@ -53,7 +53,7 @@ func TestNewConnection(t *testing.T) {
 	roomID := "room1"
 	defaultOptions := ayame.DefaultOptions()
 
-	conn := ayame.NewConnection(signalingURL, roomID, defaultOptions, false, false)
+	conn := ayame.NewConnection(signalingURL, roomID, defaultOptions, false, false, false)
 
 	if conn.SignalingURL != signalingURL {
 		t.Errorf("SignalingURL: got %v, but want %v", conn.SignalingURL, signalingURL)

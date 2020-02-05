@@ -46,7 +46,7 @@ func DefaultOptions() *ConnectionOptions {
 }
 
 // NewConnection は Ayame Connection を生成して返します。
-func NewConnection(signalingURL string, roomID string, options *ConnectionOptions, debug bool, isRelay bool) *Connection {
+func NewConnection(signalingURL string, roomID string, options *ConnectionOptions, debug bool, isRelay bool, isTrickleIce bool) *Connection {
 	transportPolicy := webrtc.ICETransportPolicyAll
 	if isRelay {
 		transportPolicy = webrtc.ICETransportPolicyRelay
@@ -74,6 +74,7 @@ func NewConnection(signalingURL string, roomID string, options *ConnectionOption
 		},
 		isOffer:       false,
 		isExistClient: false,
+		isTrickleIce:  isTrickleIce,
 
 		dataChannels: map[string]*webrtc.DataChannel{},
 

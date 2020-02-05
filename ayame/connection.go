@@ -55,6 +55,7 @@ type Connection struct {
 	pcConfig      webrtc.Configuration
 	isOffer       bool
 	isExistClient bool
+	isTrickleIce  bool
 
 	dataChannels map[string]*webrtc.DataChannel
 
@@ -291,8 +292,12 @@ func (c *Connection) createPeerConnection() error {
 	m.RegisterCodec(webrtc.NewRTPVP8Codec(webrtc.DefaultPayloadTypeVP8, 90000))
 	m.RegisterCodec(webrtc.NewRTPOpusCodec(webrtc.DefaultPayloadTypeOpus, 48000))
 
+	// Create a SettingEngine object
+	s := webrtc.SettingEngine{}
+	s.SetTrickle(c.isTrickleIce)
+
 	// Create the API object with the MediaEngine
-	api := webrtc.NewAPI(webrtc.WithMediaEngine(m))
+	api := webrtc.NewAPI(webrtc.WithMediaEngine(m), webrtc.WithSettingEngine(s))
 
 	// Create a new RTCPeerConnection
 	c.trace("RTCConfiguration: %v", c.pcConfig)
@@ -311,6 +316,20 @@ func (c *Connection) createPeerConnection() error {
 		if _, err = pc.AddTransceiver(webrtc.RTPCodecTypeVideo); err != nil {
 			return err
 		}
+	}
+
+	if c.isTrickleIce {
+		pc.OnICECandidate(func(candidate *webrtc.ICECandidate) {
+			if candidate == nil {
+				return
+			}
+			iceCandidate := candidate.ToJSON()
+			candidateMessage := &candidateMessage{
+				Type:         "candidate",
+				ICECandidate: &iceCandidate,
+			}
+			c.sendMsg(candidateMessage)
+		})
 	}
 
 	// Set a Handler for when a new remote track starts, this Handler copies inbound RTP packets,
